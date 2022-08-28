@@ -1,7 +1,7 @@
-import { sequelize } from "src/Database";
+import { Sequelize } from "sequelize";
 import Model from "./model";
 
-const UserModel = () => {
+const UserModel = (sequelize: Sequelize) => {
     return sequelize.define('User', Model);
 };
 

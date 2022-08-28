@@ -14,18 +14,16 @@ Server.use(urlencoded({ extended: false }));
 Server.use(json());
 Server.use(cookieParser());
 
-Server.use('/', (_, response) => {
-    return response.json('Hello fucking server');
-});
+// Server.use('/', (_, response) => {
+//     return response.json('Hello fucking server');
+// });
 
-Server.use('/api/suth', AuthRouter);
+Server.use('/api/auth', AuthRouter);
 
 Database()
-    .then((_database) => {
-        console.log('Database started ', _database);
+    .then(() => {
         Server.listen(PORT, () => {
             console.log(`Server started at port ${PORT}`);
-
         });
     })
     .catch((error: string) => {

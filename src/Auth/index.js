@@ -2,7 +2,7 @@ import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import jsonwebtoken from 'jsonwebtoken';
 
-import UserModel from 'src/Models/User';
+import { sequelize } from 'src/Database';
 
 const TOKEN_SECRET = 'asdasdrfxfdgsdfg';
 
@@ -17,35 +17,32 @@ AuthRouter.post('/register', (request, response) => {
     const { error } = validateRegistration(request.body);
 
     if (error) {
-        response.status(400).send(error.details[0].message);
+        return response.status(400).send(error.details[0].message);
     }
-
-    UserModel.findOne({ where: { "email": req.body.email } })
+    sequelize.models.User.findOne({ where: { "email": request.body.email } })
         .then((maybeUser) => {
             if (maybeUser) {
-                response.status(400).send("A User account with this email already exists");
+                return response.status(400).send("A User account with this email already exists");
             }
 
             bcrypt.genSalt(10)
                 .then((salt) => {
-                    bcrypt.hash(req.body.password, salt)
+                    bcrypt.hash(request.body.password, salt)
                         .then((hashedPassword) => {
                             const newUser = {
-                                firstName: req.body.firstName,
-                                lastName: req.body.lastName,
-                                email: req.body.email,
+                                firstName: request.body.firstName,
+                                lastName: request.body.lastName,
+                                email: request.body.email,
                                 password: hashedPassword
-                            };
-
-                            UserModel.create(newUser)
+                            }
+                            sequelize.models.User.create(newUser)
                                 .then((savedUser) => {
-                                    console.log('Saved user => ', savedUser);
-                                    response.status(200).json({
+                                    return response.status(200).json({
                                         status: "Success",
                                         new_user_id: savedUser.id,
                                     });
                                 }).catch((error) => {
-                                    response.status(500).send(error.message)
+                                    return response.status(500).send(error.message)
                                 })
                         });
                 });
@@ -56,18 +53,18 @@ AuthRouter.post('/login', (request, response) => {
     const { error } = validateLogin(request.body);
 
     if (error) {
-        response.status(400).send(error.details[0].message);
+        return response.status(400).send(error.details[0].message);
     }
 
-    UserModel.findOne({ where: { "email": req.body.email } })
+    sequelize.models.User.findOne({ where: { "email": request.body.email } })
         .then((user) => {
             if (!user) {
-                response.status(400).send("Email is not correct");
+                return response.status(400).send("server.error.notFound.email");
             }
-            bcrypt.compare(req.body.password, user.password)
+            bcrypt.compare(request.body.password, user.password)
                 .then((validPassword) => {
                     if (!validPassword) {
-                        response.status(400).send("Invalid password");
+                        return response.status(400).send("server.error.invalid.password");
                     }
 
                     const token = jsonwebtoken.sign({
@@ -75,7 +72,7 @@ AuthRouter.post('/login', (request, response) => {
                         exp: Math.floor(Date.now() / 1000) + (60 * 1000),
                     }, TOKEN_SECRET);
 
-                    response.header("auth-token", token).send(token);
+                    return response.header("auth-token", token).send(token);
                 });
         });
 });
