@@ -1,7 +1,7 @@
 import { Sequelize } from 'sequelize';
 import Promise from 'bluebird';
 
-import UserModel from 'src/Models/User';
+import UserModel from '../Model/User';
 
 export const sequelize = new Sequelize({
     dialect: 'sqlite',
@@ -9,13 +9,13 @@ export const sequelize = new Sequelize({
 });
 
 const Database = () => {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve: (thenableOrResult?: unknown) => void, reject: (error?: any) => void) => {
         sequelize.authenticate()
             .then(() => {
                 UserModel(sequelize);
                 sequelize.sync()
-                    .then((_database) => {
-                        return resolve(_database);
+                    .then(() => {
+                        return resolve();
                     }).catch((error) => {
                         return reject(error);
                     });

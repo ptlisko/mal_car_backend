@@ -5,6 +5,7 @@ import cookieParser from 'cookie-parser';
 import Database from './Database';
 
 import AuthRouter from 'src/Auth';
+import UserController from './Controller/UserController';
 
 const Server = express();
 const PORT = 8080;
@@ -19,9 +20,11 @@ Server.use(cookieParser());
 // });
 
 Server.use('/api/auth', AuthRouter);
+Server.use('/api/user', UserController);
 
 Database()
     .then(() => {
+        console.log(`Database successfully started!`);
         Server.listen(PORT, () => {
             console.log(`Server started at port ${PORT}`);
         });

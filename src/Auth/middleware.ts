@@ -5,7 +5,7 @@ import jsonwebtoken from 'jsonwebtoken';
 const TOKEN_SECRET = 'asdasdrfxfdgsdfg';
 
 const authMiddleware = (request: Request, response: Response, next: NextFunction) => {
-    const token = request.header('auth-token');
+    const token = request.header('Authentication');
     if(!token) {
         return response.status(401).send("Access Denied");
     }
