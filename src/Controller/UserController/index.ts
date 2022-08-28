@@ -1,6 +1,7 @@
 import { Router } from 'express';
-import { get, map } from 'lodash';
+import { get, map, toNumber } from 'lodash';
 import bcrypt from 'bcryptjs';
+import moment from 'moment';
 
 import { sequelize } from 'src/Database';
 
@@ -20,8 +21,8 @@ UserRouter.post('/', authMiddleware, (request, response) => {
                         .then((hashedPassword) => {
                             const newUser: Record<any, any> = {
                                 email: get(request, 'body.email'),
-                                firstName: get(request, 'body.email'),
-                                lastName: get(request, 'body.email'),
+                                firstName: get(request, 'body.firstName'),
+                                lastName: get(request, 'body.firstName'),
                                 password: hashedPassword
                             }
                             sequelize.models.User.create(newUser)
@@ -34,7 +35,7 @@ UserRouter.post('/', authMiddleware, (request, response) => {
                                     });
                                 }).catch((error) => {
                                     return response.status(500).send(error.message)
-                                })
+                                });
                         });
                 });
 
@@ -53,13 +54,15 @@ UserRouter.get('/', authMiddleware, (request, response) => {
                 firstName: get(user, 'firstName'),
                 lastName: get(user, 'lastName'),
                 email: get(user, 'email'),
+                createdAt: moment(get(user, 'createdAt')).format("DD. MM. YYYY"),
+                updatedAt: moment(get(user, 'updatedAt')).format("DD. MM. YYYY"),
             }));
             sequelize.models.User.count()
                 .then((userCount) => {
                     return response.status(200).json({
                         count: userCount,
-                        limit: get(request, 'query.limit'),
-                        offset: get(request, 'query.offset'),
+                        limit: toNumber(get(request, 'query.limit')),
+                        offset: toNumber(get(request, 'query.offset')),
                         users: mappedUsers
                     });
                 }).catch((error) => {
@@ -99,7 +102,7 @@ UserRouter.delete('/:id', authMiddleware, (request, response) => {
     const userId = get(request, 'params.id');
     const selfId = get(request, 'user.id');
     if (userId !== selfId) {
-        return response.status(500).send('server.error.delete.notAllowed.user')
+        return response.status(500).send('server.error.delete.notAllowed.user');
     }
 
     sequelize.models.User.destroy({ where: { id: userId } })
@@ -108,7 +111,7 @@ UserRouter.delete('/:id', authMiddleware, (request, response) => {
                 status: "Success",
             });
         }).catch((error) => {
-            return response.status(500).send(error.message)
+            return response.status(500).send(error.message);
         });
 });
 
